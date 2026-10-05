@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ameer the Snake</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --panel: #ffffff;
+    --text: #1f2a1f;
+    --muted: #6b7568;
+    --board: #a8d672;
+    --board-alt: #9fcd68;
+    --snake: #2f6f3e;
+    --snake-head: #1f4f2b;
+    --apple: #d93a2b;
+    --leaf: #3c8a2e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141814;
+      --panel: #1e241e;
+      --text: #e8efe4;
+      --muted: #9aa696;
+      --board: #2c4a24;
+      --board-alt: #284420;
+      --snake: #7fd18b;
+      --snake-head: #b3f0ba;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+  h1 { margin: 8px 0 4px; font-size: 1.8rem; }
+  .sub { color: var(--muted); margin: 0 0 12px; }
+  .hud {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .wrap { position: relative; width: min(480px, 100%); }
+  canvas {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.18);
+    touch-action: none;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    border-radius: 12px;
+    text-align: center;
+    padding: 16px;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { margin: 0 0 8px; }
+  button {
+    margin-top: 12px;
+    font: inherit;
+    font-weight: 600;
+    padding: 10px 22px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--apple);
+    color: #fff;
+    cursor: pointer;
+  }
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .pad button { margin: 0; padding: 12px 0; background: var(--snake); }
+  .pad .empty { visibility: hidden; }
+  .help { color: var(--muted); font-size: .9rem; margin-top: 10px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🐍 Ameer the Snake</h1>
+  <p class="sub">Help Ameer eat as many apples as he can!</p>
+
+  <div class="hud">
+    <span>Apples: <span id="score">0</span></span>
+    <span>Best: <span id="best">0</span></span>
+  </div>
+
+  <div class="wrap">
+    <canvas id="game" width="480" height="480"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="title">Ready, Ameer?</h2>
+      <p id="msg">Use the arrow keys or WASD to move.<br>Press Space to pause.</p>
+      <button id="start">Start</button>
+    </div>
+  </div>
+
+  <div class="pad" aria-label="Touch controls">
+    <span class="empty"></span><button data-dir="up">▲</button><span class="empty"></span>
+    <button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button>
+  </div>
+  <p class="help">On phones you can also swipe on the board.</p>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const titleEl = document.getElementById('title');
+  const msgEl = document.getElementById('msg');
+  const startBtn = document.getElementById('start');
+
+  const GRID = 20;
+  const CELL = canvas.width / GRID;
+  const DIRS = {
+    up: { x: 0, y: -1 }, down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 }, right: { x: 1, y: 0 }
+  };
+
+  let snake, dir, nextDir, apple, score, speed, timer, running, paused;
+  let best = 0;
+  try { best = Number(localStorage.getItem('ameer-best')) || 0; } catch (e) {}
+  bestEl.textContent = best;
+
+  function css(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function reset() {
+    snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+    dir = DIRS.right;
+    nextDir = dir;
+    score = 0;
+    speed = 140;
+    scoreEl.textContent = score;
+    placeApple();
+  }
+
+  function placeApple() {
+    do {
+      apple = { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) };
+    } while (snake.some(s => s.x === apple.x && s.y === apple.y));
+  }
+
+  function setDir(name) {
+    const d = DIRS[name];
+    if (!d || !running) return;
+    // Ameer cannot turn straight back into himself
+    if (d.x === -dir.x && d.y === -dir.y) return;
+    nextDir = d;
+  }
+
+  function step() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    const hitWall = head.x < 0 || head.y < 0 || head.x >= GRID || head.y >= GRID;
+    const ate = head.x === apple.x && head.y === apple.y;
+    // The tail moves away this turn unless Ameer eats, so ignore it in the check
+    const body = ate ? snake : snake.slice(0, -1);
+    const hitSelf = body.some(s => s.x === head.x && s.y === head.y);
+
+    if (hitWall || hitSelf) return gameOver();
+
+    snake.unshift(head);
+    if (ate) {
+      score++;
+      scoreEl.textContent = score;
+      if (snake.length === GRID * GRID) return gameOver(true);
+      placeApple();
+      if (speed > 60) {
+        speed -= 4;
+        restartTimer();
+      }
+    } else {
+      snake.pop();
+    }
+    draw();
+  }
+
+  function draw() {
+    for (let y = 0; y < GRID; y++) {
+      for (let x = 0; x < GRID; x++) {
+        ctx.fillStyle = (x + y) % 2 ? css('--board-alt') : css('--board');
+        ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+      }
+    }
+    drawApple();
+    drawSnake();
+  }
+
+  function drawApple() {
+    const cx = apple.x * CELL + CELL / 2;
+    const cy = apple.y * CELL + CELL / 2 + 1;
+    ctx.fillStyle = css('--apple');
+    ctx.beginPath();
+    ctx.arc(cx, cy, CELL * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.45)';
+    ctx.beginPath();
+    ctx.arc(cx - CELL * 0.13, cy - CELL * 0.12, CELL * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5a3a1a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - CELL * 0.35);
+    ctx.lineTo(cx + 2, cy - CELL * 0.5);
+    ctx.stroke();
+    ctx.fillStyle = css('--leaf');
+    ctx.beginPath();
+    ctx.ellipse(cx + CELL * 0.17, cy - CELL * 0.42, CELL * 0.14, CELL * 0.07, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawSnake() {
+    snake.forEach((s, i) => {
+      const pad = i === 0 ? 1 : 2;
+      ctx.fillStyle = i === 0 ? css('--snake-head') : css('--snake');
+      roundRect(s.x * CELL + pad, s.y * CELL + pad, CELL - pad * 2, CELL - pad * 2, 6);
+    });
+
+    // Eyes on Ameer's head, facing his direction
+    const h = snake[0];
+    const cx = h.x * CELL + CELL / 2;
+    const cy = h.y * CELL + CELL / 2;
+    const fx = dir.x * CELL * 0.18, fy = dir.y * CELL * 0.18;
+    const px = -dir.y * CELL * 0.2, py = dir.x * CELL * 0.2;
+    [[1], [-1]].forEach(([side]) => {
+      const ex = cx + fx + px * side, ey = cy + fy + py * side;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(ex, ey, CELL * 0.13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.beginPath(); ctx.arc(ex + dir.x * 1.5, ey + dir.y * 1.5, CELL * 0.06, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Name tag above the head
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    const ty = Math.max(12, h.y * CELL - 4);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(0,0,0,.6)';
+    ctx.strokeText('Ameer', cx, ty);
+    ctx.fillStyle = '#fff';
+    ctx.fillText('Ameer', cx, ty);
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function restartTimer() {
+    clearInterval(timer);
+    timer = setInterval(step, speed);
+  }
+
+  function start() {
+    reset();
+    running = true;
+    paused = false;
+    overlay.classList.add('hidden');
+    draw();
+    restartTimer();
+  }
+
+  function togglePause() {
+    if (!running) return;
+    paused = !paused;
+    if (paused) {
+      clearInterval(timer);
+      titleEl.textContent = 'Paused';
+      msgEl.innerHTML = 'Ameer is taking a nap. Press Space to continue.';
+      startBtn.textContent = 'Resume';
+      overlay.classList.remove('hidden');
+    } else {
+      overlay.classList.add('hidden');
+      restartTimer();
+    }
+  }
+
+  function gameOver(won) {
+    clearInterval(timer);
+    running = false;
+    draw();
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best;
+      try { localStorage.setItem('ameer-best', best); } catch (e) {}
+    }
+    titleEl.textContent = won ? 'Ameer filled the whole field! 🏆' : 'Game Over';
+    msgEl.innerHTML = `Ameer ate <b>${score}</b> apple${score === 1 ? '' : 's'}.`;
+    startBtn.textContent = 'Play again';
+    overlay.classList.remove('hidden');
+  }
+
+  startBtn.addEventListener('click', () => (paused ? togglePause() : start()));
+
+  const KEYS = {
+    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+    w: 'up', s: 'down', a: 'left', d: 'right',
+    W: 'up', S: 'down', A: 'left', D: 'right'
+  };
+  document.addEventListener('keydown', e => {
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (running) togglePause(); else start();
+      return;
+    }
+    if (KEYS[e.key]) {
+      e.preventDefault();
+      if (!paused) setDir(KEYS[e.key]);
+    }
+  });
+
+  document.querySelectorAll('.pad button').forEach(b =>
+    b.addEventListener('click', () => !paused && setDir(b.dataset.dir)));
+
+  let touchStart = null;
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  canvas.addEventListener('touchend', e => {
+    if (!touchStart || paused) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 20) {
+      setDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    }
+    touchStart = null;
+  });
+
+  reset();
+  draw();
+})();
+</script>
+</body>
+</html>
