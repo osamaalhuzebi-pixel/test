@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2b1a7a">
+  <title>Psych War</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Login: nickname (never a real name) and birthday -->
+  <section id="screen-login" class="screen overlay hidden">
+    <form id="login-form" class="panel" novalidate>
+      <h1 class="title small">PSYCH WAR</h1>
+      <p class="subtitle">Make your player!</p>
+      <label for="nickname">Nickname</label>
+      <div class="row">
+        <input id="nickname" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ShadowFox99">
+        <button type="button" id="btn-random-name" class="dice" aria-label="Random nickname">🎲</button>
+      </div>
+      <p class="hint">🤫 Don't use your real name! Pick a secret nickname.</p>
+      <label for="birthday">Birthday</label>
+      <input id="birthday" type="date">
+      <div id="login-error" class="error" role="alert"></div>
+      <button class="btn" type="submit">LET'S GO!</button>
+    </form>
+  </section>
+
+  <!-- Main menu -->
+  <section id="screen-menu" class="screen menu hidden">
+    <div class="menu-top">
+      <div class="chip"><span id="menu-level" class="level">LVL 1</span><span id="menu-nickname"></span></div>
+      <div class="chip"><span class="coin">🪙</span><span id="menu-coins">0</span></div>
+      <div class="chip"><span class="tbs-box">TBS</span><span id="menu-tbs">0</span></div>
+    </div>
+    <div class="menu-left">
+      <h1 class="title">PSYCH WAR</h1>
+      <div id="birthday-banner" class="banner hidden">🎂 Happy birthday! 🎉</div>
+      <button id="btn-play" class="btn big">▶ PLAY OFFLINE</button>
+      <div class="mode-sub">2 vs 2 · Island · vs Bots · 5 min</div>
+      <button class="btn secondary" disabled>🌐 ONLINE · SOON</button>
+      <button class="btn secondary" disabled>🛒 SHOP · SOON</button>
+      <button id="btn-change-name" class="link-btn" type="button">Change nickname</button>
+    </div>
+    <div class="skin-label">MJALLI <span>FREE SKIN</span></div>
+  </section>
+
+  <!-- In-match HUD -->
+  <div id="hud" class="hidden">
+    <div id="hud-top">
+      <div id="score-blue" class="score blue">0</div>
+      <div id="timer">5:00</div>
+      <div id="score-red" class="score red">0</div>
+    </div>
+    <div id="feed"></div>
+    <button id="btn-pause" class="icon-btn" aria-label="Pause">❚❚</button>
+    <div id="crosshair"></div>
+    <div id="hitmarker"></div>
+    <div id="toast"></div>
+    <div id="center-msg"><div id="center-title"></div><div id="center-sub"></div></div>
+    <div id="hud-bottom">
+      <div id="weapon-box"><span id="weapon-icon"></span><span id="weapon-name"></span></div>
+      <div id="health-bar"><div id="health-fill"></div><span id="health-text">100</span></div>
+    </div>
+    <div id="damage-vignette"></div>
+    <div id="desktop-help">WASD move · Mouse aim · Click fire · Space jump · Q switch · Esc pause</div>
+  </div>
+
+  <!-- Tablet controls -->
+  <div id="touch-ui" class="hidden">
+    <div id="joy-base"><div id="joy-knob"></div></div>
+    <div id="btn-fire" class="touch-btn" data-action="fire">FIRE</div>
+    <div id="btn-jump" class="touch-btn" data-action="jump">JUMP</div>
+    <div id="btn-swap" class="touch-btn" data-action="swap">🩴</div>
+  </div>
+
+  <section id="screen-pause" class="screen overlay hidden">
+    <div class="panel">
+      <h2 class="title small">PAUSED</h2>
+      <button id="btn-resume" class="btn">▶ RESUME</button>
+      <button id="btn-sound" class="btn secondary">🔊 SOUND: ON</button>
+      <button id="btn-quit" class="btn secondary">QUIT TO MENU</button>
+    </div>
+  </section>
+
+  <section id="screen-end" class="screen end hidden">
+    <div class="panel">
+      <h2 id="end-title"></h2>
+      <div class="end-score"><span id="end-blue" class="blue">0</span> – <span id="end-red" class="red">0</span></div>
+      <div class="end-stats">
+        <div>Tag-outs<b id="end-tags">0</b></div>
+        <div>🪙 Coins<b id="end-coins">0</b></div>
+        <div><span class="tbs-box">TBS</span><b id="end-tbs">0</b></div>
+      </div>
+      <button id="btn-again" class="btn">PLAY AGAIN</button>
+      <button id="btn-menu" class="btn secondary">MENU</button>
+    </div>
+  </section>
+
+  <div id="rotate-hint">📱↻ Turn your tablet sideways!</div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

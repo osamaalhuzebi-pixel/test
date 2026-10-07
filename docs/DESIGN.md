@@ -57,7 +57,8 @@ The player chooses the map before each match.
 
 ## 6. Bots
 
-- Bots are always on the **enemy team**.
+- Enemy players in offline mode are always **bots**.
+- In offline mode your teammates are friendly **helper bots**.
 - Difficulty goes from **easy to hard based on the player's level and power**:
   - Low level: bots move slowly and miss often.
   - High level: bots aim better, build walls and work together.
@@ -114,7 +115,7 @@ TBS is the premium currency, shown inside a **square box** icon.
 
 ## 11. Build order
 
-1. **Version 1 (offline):** login screen, Mjalli skin, one map (Island), 2v2 against easy bots, Starter Blaster and Slipper, touch controls, pause.
+1. **Version 1 (offline):** login screen, Mjalli skin, one map (Island), 2v2 against easy bots, Starter Blaster and Slipper, touch controls, pause. ✅ Built
 2. **Version 2:** building walls and ramps, levels and XP, smarter bots, team size choice.
 3. **Version 3:** all maps, all guns, shop with skins and pretend TBS.
 4. **Version 4:** online play with friends.
