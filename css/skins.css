@@ -1,0 +1,136 @@
+/* Locker: one dark item-shop look, tinted by the selected outfit's rarity. */
+:root {
+  color-scheme: dark;
+  --ink: #07071a;
+  --panel: rgba(9, 10, 30, 0.62);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #f4f6ff;
+  --muted: #b9bfdc;
+  --yellow: #ffe14d;
+  --rar: #a5aebb;
+  --rar-deep: #3a4150;
+  --display: 'Saira Condensed', 'Arial Narrow', Impact, sans-serif;
+  --body: 'Nunito', 'Trebuchet MS', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--ink); color: var(--text); font-family: var(--body);
+  user-select: none; -webkit-user-select: none; touch-action: none;
+}
+
+#stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.locker {
+  position: fixed; inset: 0; pointer-events: none;
+  display: grid; grid-template-columns: 236px 1fr 320px; grid-template-rows: auto 1fr auto;
+  grid-template-areas: "brand . info" "cards . info" "cards hint info";
+  gap: 12px; padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+.locker > * { pointer-events: auto; }
+
+.brand { grid-area: brand; display: flex; flex-direction: column; line-height: 0.95; }
+.brand-game {
+  font-family: var(--display); font-weight: 900; font-size: 34px; text-transform: uppercase;
+  color: var(--yellow); transform: skewX(-8deg); text-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+}
+.brand-page { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+/* ---- outfit cards ---- */
+.cards { grid-area: cards; display: flex; flex-direction: column; gap: 10px; align-self: start; min-height: 0; overflow-y: auto; padding: 4px; }
+.card {
+  position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px;
+  font: inherit; color: var(--text); text-align: left; cursor: pointer;
+  background: var(--panel); border: 2px solid var(--line); border-radius: 10px;
+  transform: skewX(-4deg); transition: transform 0.15s, border-color 0.15s;
+}
+.card:hover { transform: skewX(-4deg) translateX(3px); }
+.card.selected { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow), 0 6px 18px rgba(0, 0, 0, 0.4); }
+.card:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.thumb {
+  flex: 0 0 64px; width: 64px; height: 64px; border-radius: 6px; overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, var(--rar), var(--rar-deep) 75%);
+  border-bottom: 4px solid var(--rar);
+}
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.card-name { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1; text-transform: uppercase; }
+.card-price { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; }
+.card-vote { position: absolute; top: 4px; right: 8px; font-size: 16px; }
+
+.tbs {
+  display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+  font-family: var(--display); font-weight: 900; font-size: 10px; color: #170b3b;
+  background: linear-gradient(135deg, #7de0ff, #c58bff); border: 2px solid #fff; border-radius: 4px;
+}
+.free { font-family: var(--display); font-weight: 900; letter-spacing: 0.06em; color: #7dff8a; }
+
+/* ---- info panel ---- */
+.info {
+  grid-area: info; align-self: center; display: flex; flex-direction: column; gap: 10px;
+  padding: 20px; background: var(--panel); border: 2px solid var(--line); border-radius: 14px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.rarity {
+  align-self: flex-start; padding: 3px 12px; font-family: var(--display); font-weight: 800; font-size: 15px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #0b0b1a; background: var(--rar); transform: skewX(-8deg);
+}
+.name {
+  font-family: var(--display); font-weight: 900; font-size: clamp(52px, 6vw, 84px); line-height: 0.88;
+  text-transform: uppercase; transform: skewX(-8deg); text-wrap: balance;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 26px var(--rar);
+}
+.tagline { color: var(--muted); font-weight: 600; font-size: 16px; }
+.price { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 900; font-size: 30px; font-variant-numeric: tabular-nums; }
+.price .tbs { width: 32px; height: 32px; font-size: 12px; }
+.parts { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.parts li { padding: 4px 10px; font-size: 13px; font-weight: 800; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--line); border-radius: 999px; }
+
+.actions { display: flex; gap: 8px; margin-top: 4px; }
+.votes { display: flex; gap: 8px; }
+.btn {
+  font-family: var(--display); font-weight: 900; font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 10px 16px; color: #170b3b; background: #fff; border: none; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35); }
+.btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.btn.primary { flex: 1; background: var(--yellow); }
+.btn.vote { width: 52px; padding: 10px 0; font-size: 22px; background: rgba(255, 255, 255, 0.14); }
+.btn.vote.on { background: var(--yellow); }
+#vote-no.on { background: #ff8a8a; }
+.vote-summary { font-size: 13px; color: var(--muted); }
+
+.hint { grid-area: hint; align-self: end; justify-self: center; font-size: 13px; font-weight: 800; color: rgba(255, 255, 255, 0.7); pointer-events: none; }
+
+.loading {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-weight: 900; font-size: 30px; text-transform: uppercase;
+  background: var(--ink); color: var(--yellow); transition: opacity 0.4s;
+}
+body.ready .loading { opacity: 0; pointer-events: none; }
+
+/* ---- narrow or tall screens: info on top, cards in a strip at the bottom ---- */
+@media (max-width: 860px), (max-aspect-ratio: 1/1) {
+  .locker {
+    grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto auto;
+    grid-template-areas: "brand" "info" "." "hint" "cards";
+    gap: 8px; padding-left: 16px; padding-right: 16px;
+  }
+  .brand { flex-direction: row; align-items: baseline; gap: 10px; }
+  .brand-game { font-size: 26px; }
+  .info { align-self: start; padding: 12px 14px; gap: 6px; background: rgba(9, 10, 30, 0.45); }
+  .name { font-size: clamp(40px, 11vw, 60px); }
+  .tagline, .parts, .vote-summary { display: none; }
+  .price { font-size: 22px; }
+  .cards { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
+  .card { flex: 0 0 auto; width: auto; flex-direction: column; gap: 4px; padding: 5px; }
+  .thumb { width: 58px; height: 58px; flex-basis: 58px; }
+  .card-text { align-items: center; }
+  .card-name { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .loading { transition: none; }
+}

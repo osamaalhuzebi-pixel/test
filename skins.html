@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07071a">
+  <title>Psych War Locker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800;900&family=Nunito:wght@600;800&display=swap">
+  <link rel="stylesheet" href="css/skins.css">
+</head>
+<body>
+  <canvas id="stage" aria-label="3D outfit preview. Drag to spin the character."></canvas>
+
+  <div class="locker">
+    <header class="brand">
+      <span class="brand-game">Psych War</span>
+      <span class="brand-page">Locker · Outfits</span>
+    </header>
+
+    <nav id="cards" class="cards" aria-label="Outfits"></nav>
+
+    <section class="info" aria-live="polite">
+      <span id="info-rarity" class="rarity">Common</span>
+      <h1 id="info-name" class="name">Mjalli</h1>
+      <p id="info-tagline" class="tagline"></p>
+      <div id="info-price" class="price"></div>
+      <ul id="info-parts" class="parts"></ul>
+      <div class="actions">
+        <button id="btn-emote" class="btn primary" type="button">▶ Emote</button>
+        <div class="votes">
+          <button id="vote-yes" class="btn vote" type="button" aria-pressed="false" aria-label="I like this outfit">👍</button>
+          <button id="vote-no" class="btn vote" type="button" aria-pressed="false" aria-label="Change this outfit">👎</button>
+        </div>
+      </div>
+      <p id="vote-summary" class="vote-summary"></p>
+    </section>
+
+    <p class="hint">Drag to spin · Pinch to zoom</p>
+  </div>
+
+  <div class="loading" aria-hidden="true">Loading outfits…</div>
+
+  <script type="module" src="js/skins/locker.js"></script>
+</body>
+</html>
